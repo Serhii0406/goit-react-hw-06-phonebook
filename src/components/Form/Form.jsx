@@ -1,28 +1,27 @@
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
+import { getContacts } from 'redux/selectors';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import css from './Form.module.css'
 
-export const Form = ({onSubmit}) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export const Form = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
 
-  const handleNameChange = event => {
-    setName(event.target.value)
-  }
-
-  const handleNumberChange = event => {
-    setNumber(event.target.value)
-  }
-
-  const reset = () => {
-    setName('');
-    setNumber('');
-  }
   const handleSubmit = event => {
     event.preventDefault();
-
-    onSubmit({name, number});
-
-    reset();
+    const form = event.target;
+    const name = form.name.value;
+    const number = form.number.value;
+    if (
+      contacts.find(
+        contact => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      return Notify.warning(`${name} is already in contacts`);
+    }
+    dispatch(addContact(name, number));
+    form.reset();
   };
       return (
         <form onSubmit={handleSubmit} className={css.form}>
@@ -30,8 +29,6 @@ export const Form = ({onSubmit}) => {
             <span className={css.formTitle}>Name</span>
           <input
             className={css.formInput}
-            value={name}
-            onChange={handleNameChange}
             type="text"
             name="name"
             pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
@@ -43,8 +40,6 @@ export const Form = ({onSubmit}) => {
             <span className={css.formTitle}>Number</span>
           <input
             className={css.formInput}
-            value={number}
-            onChange={handleNumberChange}
             type="tel"
             name="number"
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
